@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PvP Arena — Gomoku (五目並べ)</title>
+    <meta name="description" content="Real-time multiplayer Gomoku (Five in a Row) for local network PvP — 15×15 board">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚫</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- ═══ AUTH VIEW ═══ -->
+<div id="auth-view" class="view active">
+    <div class="auth-container">
+        <div class="auth-logo">
+            <div class="logo-icon pulse">⚫</div>
+            <h1>PvP <span class="accent">Arena</span></h1>
+            <p class="subtitle">Gomoku — Five in a Row</p>
+        </div>
+        <div class="auth-card glass">
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login" id="tab-login">Login</button>
+                <button class="auth-tab" data-tab="register" id="tab-register">Register</button>
+            </div>
+            <form id="auth-form" autocomplete="off">
+                <div class="input-group">
+                    <input type="text" id="auth-username" placeholder="Username" required minlength="2" maxlength="20">
+                </div>
+                <div class="input-group">
+                    <input type="password" id="auth-password" placeholder="Password" required minlength="3">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" id="auth-submit">
+                    <span id="auth-btn-text">Login</span>
+                </button>
+                <p id="auth-error" class="error-text"></p>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ LOBBY VIEW ═══ -->
+<div id="lobby-view" class="view">
+    <header class="topbar">
+        <div class="topbar-left">
+            <span class="logo-sm">⚫ Gomoku Arena</span>
+        </div>
+        <div class="topbar-right">
+            <span id="user-badge" class="badge"></span>
+            <button class="btn btn-ghost" id="stats-btn">📊</button>
+            <button class="btn btn-ghost" id="logout-btn">Logout</button>
+        </div>
+    </header>
+
+    <div class="lobby-grid">
+        <!-- LEFT: players -->
+        <aside class="panel glass" id="panel-players">
+            <h2 class="panel-title">🟢 Online <span id="online-count" class="count-badge">0</span></h2>
+            <div id="online-list" class="player-list"></div>
+            <div class="pve-box">
+                <h3>🤖 Play vs Bot</h3>
+                <div class="btn-row">
+                    <button class="btn btn-sm btn-secondary" id="pve-easy-btn">Easy</button>
+                    <button class="btn btn-sm btn-accent" id="pve-hard-btn">Hard</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CENTER: tabs -->
+        <main class="lobby-main">
+            <div class="tab-bar">
+                <button class="tab active" data-panel="lb">🏆 Leaderboard</button>
+                <button class="tab" data-panel="hist">📜 History</button>
+                <button class="tab" data-panel="ach">🎖️ Achievements</button>
+            </div>
+            <div id="panel-lb" class="tab-content glass active"><div id="lb-body"></div></div>
+            <div id="panel-hist" class="tab-content glass"><div id="hist-body"></div></div>
+            <div id="panel-ach" class="tab-content glass"><div id="ach-body"></div></div>
+        </main>
+
+        <!-- RIGHT: chat -->
+        <aside class="panel glass" id="panel-chat">
+            <h2 class="panel-title">💬 Lobby Chat</h2>
+            <div id="chat-log" class="chat-log"></div>
+            <form id="chat-form" class="chat-form">
+                <input id="chat-input" type="text" placeholder="Say something…" maxlength="500" autocomplete="off">
+                <button type="submit" class="btn btn-primary btn-sm">➤</button>
+            </form>
+        </aside>
+    </div>
+</div>
+
+<!-- ═══ GAME VIEW ═══ -->
+<div id="game-view" class="view">
+    <div class="game-wrapper">
+        <div class="game-hud glass">
+            <span id="hud-x" class="hud-player">⚫ —</span>
+            <span class="hud-vs">VS</span>
+            <span id="hud-o" class="hud-player">⚪ —</span>
+        </div>
+        <div id="turn-indicator" class="turn-indicator">Your turn</div>
+        <div class="board-container">
+            <div class="board-wrap">
+                <div id="board" class="board"></div>
+            </div>
+        </div>
+        <div class="game-info glass">
+            <span id="move-counter">Moves: 0</span>
+            <span class="game-info-sep">·</span>
+            <span class="game-info-rule">5 in a row to win</span>
+        </div>
+        <button class="btn btn-secondary" id="leave-btn">← Leave Game</button>
+    </div>
+</div>
+
+<!-- ═══ CHALLENGE POPUP ═══ -->
+<div id="challenge-popup" class="overlay hidden">
+    <div class="popup glass">
+        <div class="popup-icon pulse">⚔️</div>
+        <h2>Challenge!</h2>
+        <p id="challenge-text"></p>
+        <div class="btn-row">
+            <button class="btn btn-primary" id="accept-btn">Accept</button>
+            <button class="btn btn-secondary" id="decline-btn">Decline</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ STATS MODAL ═══ -->
+<div id="stats-modal" class="overlay hidden">
+    <div class="popup popup-lg glass">
+        <button class="close-btn" id="stats-close">✕</button>
+        <h2>📊 Player Statistics</h2>
+        <div id="stats-body"></div>
+    </div>
+</div>
+
+<!-- ═══ GAME OVER MODAL ═══ -->
+<div id="gameover-modal" class="overlay hidden">
+    <div class="popup glass">
+        <div id="go-icon" class="popup-icon"></div>
+        <h2 id="go-title"></h2>
+        <p id="go-text"></p>
+        <div id="go-achievements"></div>
+        <div class="btn-row">
+            <button class="btn btn-primary" id="go-lobby-btn">Back to Lobby</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ ACHIEVEMENT TOAST ═══ -->
+<div id="ach-toast" class="ach-toast hidden">
+    <div class="ach-toast-inner glass">
+        <span class="ach-toast-icon">🏆</span>
+        <div>
+            <small>Achievement Unlocked!</small>
+            <strong id="ach-toast-name"></strong>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ TOAST CONTAINER ═══ -->
+<div id="toasts" class="toast-container"></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

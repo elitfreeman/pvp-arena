@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  pvp-arena:
+    build: .
+    container_name: pvp-arena
+    ports:
+      - "8080:8000"
+    volumes:
+      - pvp-data:/project/data
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=sqlite:///./data/pvp_arena.db
+
+volumes:
+  pvp-data:
